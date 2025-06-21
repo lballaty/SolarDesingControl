@@ -1,0 +1,128 @@
+
+# System Design: Expanse Solar Velenice
+
+---
+
+### ✅ System Overview – Two Variants
+
+#### Variant A – 10 kWp / 140 kWh (Full Capacity)
+
+| Item                      | Specification                                |
+|---------------------------|-----------------------------------------------|
+| **Off-grid PV Array**     | 10 kWp, bifacial panels (mounted on greenhouse) |
+| **Battery**               | 140 kWh Flooded Lead Acid (FLA), 48 V         |
+| **MPPT Controllers**      | Victron SmartSolar MPPT 150/100 (2 units)     |
+| **Inverter/Charger**      | Victron MultiPlus-II 48/5000/70               |
+| **Monitoring**            | Victron Cerbo GX + SmartShunt                 |
+| **Backed-up Loads**       | Fish filtration, lights, fridge, Wi-Fi, heating element in storage tank |
+| **On-grid System**        | GoodWe 10 kWp (non-modifiable)                |
+| **EV Charging**           | Manual in summer only                         |
+
+#### Variant B – 5 kWp / 70 kWh (Reduced Capacity)
+
+| Item                      | Specification                                 |
+|---------------------------|-----------------------------------------------|
+| **Off-grid PV Array**     | 5 kWp, bifacial panels (greenhouse)           |
+| **Battery**               | 70 kWh FLA (e.g., 48 V / 1450 Ah)             |
+| **MPPT Controller**       | Victron SmartSolar MPPT 150/70 (1 unit)       |
+| **Inverter/Charger**      | Victron MultiPlus-II 48/3000/35               |
+| **Monitoring**            | Cerbo GX or Color Control GX                  |
+| **Backed-up Loads**       | Fish tank, LED lighting, basic DC loads       |
+| **Scalability**           | Future upgrade possible                       |
+
+---
+
+### ♻️ Seasonal Operation (Both Variants)
+
+#### ❄️ Winter (Nov – Feb)
+- Variant A: production 3–6 kWh/day, all critical loads prioritized
+- Variant B: production 2–4 kWh/day, only fish tank and lighting prioritized
+
+#### ☀️ Summer (Mar – Oct)
+- Variant A: excess up to 50–60 kWh/day, optional EV charging and hot water heating
+- Variant B: basic load coverage, occasional grid substitution
+
+---
+
+### ⚡ System Logic (Cerbo GX)
+
+| Rule | Condition                              | Action (A/B)                                 |
+|------|----------------------------------------|----------------------------------------------|
+| R1   | SoC < 35%, between 22:00–06:00         | Turn off lights (A and B)                    |
+| R2   | SoC < 30%                              | Turn off everything except fish system       |
+| R3   | SoC > 60%, PV > 500 W                  | Turn on fridge and router (A only)           |
+| R4   | SoC > 80%, 10:00–16:00, summer         | Enable EV and water heating (A only)         |
+| R5   | SoC > 95%, no active loads             | Disconnect PV via relay or MPPT Remote OFF   |
+
+---
+
+### 🖼 Detailed Wiring – Variant A
+```mermaid
+flowchart TD
+    subgraph Panels_A [Off-grid PV Array 10 kWp]
+        PA1["String 1 (5 kWp)"] --> MPPT_A1["MPPT 150/100"]
+        PA2["String 2 (5 kWp)"] --> MPPT_A2["MPPT 150/100"]
+        DIS_A["PV Disconnect Relay"]
+        MPPT_A1 --> DIS_A --> BATA["Battery 140 kWh / 48 V FLA"]
+        MPPT_A2 --> DIS_A
+    end
+    BATA --> MPA["Victron MultiPlus-II 48/5000"]
+    MPA --> AC_A_OUT["Critical Loads Distribution Panel"]
+    AC_A_OUT --> L1A["Fish Filtration"]
+    AC_A_OUT --> L2A["LED Lights"]
+    AC_A_OUT --> L3A["Fridge, Router"]
+    AC_A_OUT --> HEATA["Water Heating Coil (Storage Tank)"]
+    GRID_A["GoodWe On-grid 10 kWp"] --> AC_MAINA["Main House Distribution Panel"]
+    AC_MAINA --> L4A["Sockets, Stove, Heat Pump"]
+```
+
+---
+
+### 🖼 Detailed Wiring – Variant B
+```mermaid
+flowchart TD
+    subgraph Panels_B [Off-grid PV Array 5 kWp]
+        PB1["PV String (5 kWp)"] --> MPPT_B["MPPT 150/70"]
+        DIS_B["PV Disconnect Relay"]
+        MPPT_B --> DIS_B --> BATB["Battery 70 kWh / 48 V FLA"]
+    end
+
+    BATB --> MPB["Victron MultiPlus-II 48/3000"]
+    MPB --> AC_B_OUT["Critical Loads Distribution Panel"]
+    AC_B_OUT --> L1B["Fish Tank Filtration"]
+    AC_B_OUT --> L2B["LED Lighting"]
+    AC_B_OUT --> L3B["DC Loads"]
+
+    GRID_B["GoodWe On-grid 10 kWp"] --> AC_MAINB["Main House Distribution Panel"]
+    AC_MAINB --> L4B["Sockets, Stove, Heat Pump"]
+```
+
+---
+
+### 🛠️ Mounting Plan and Installation Notes
+
+#### PV Mounting (Greenhouse / Polycarbonate Roof)
+- Use aluminum C-profiles on steel beams under the polycarbonate
+- Maintain at least 10 cm ventilation gap below panels
+- Use manual tilting brackets: ~25° summer / ~45° winter (adjust 2x/year)
+
+#### Battery Placement
+- Well-ventilated, cool space (basement or utility room recommended)
+- On non-conductive tray with electrolyte spill protection
+- Max distance to inverter: 2 meters to reduce loss
+
+#### Cabling and Protection
+- DC strings protected by 25 A / 100 VDC breakers
+- Inverter AC output protected by 25 A dual-pole circuit breaker
+- Signal cables (VE.Bus, SmartShunt) routed separately from power
+
+#### Cerbo GX Placement
+- Mount near the inverter
+- GX Touch placed in visible location
+- Remote monitoring via Victron VRM portal
+
+---
+
+**Version: 1.6 / 06-2025**  
+**Project: Expanse Solar Velenice – Full and Compact Variants**  
+**Contact: [Owner / Designer]**
