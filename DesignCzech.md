@@ -83,6 +83,8 @@ flowchart TD
     AC_OUT_A --> L2A["LED osvětlení"]
     AC_OUT_A --> L3A["Lednice, router"]
     AC_OUT_A --> HEATA["Topná spirála (bojler)"]
+    AC_OUT_A --> AUTO1["Auto Nabijeni 2 (zasuvka 3)"]
+    AC_MAINA --> AUTO2["Auto Nabijeni 1 (zasuvka 1)"]
     AC_MAINA --> L4A["Zásuvky, sporák, tepelné čerpadlo"]
 ```
 
@@ -99,9 +101,9 @@ flowchart TD
         MPPT_B --> DIS_B --> BATB["Baterie 70 kWh / 48 V FLA"]
     end
 
-    subgraph Grid_B [Síťové FV pole (GoodWe 10 kWp)]
+    subgraph Grid_B [Síťové FV pole GoodWe 10 kWp]
         GW_INV["Střídač GoodWe"] --> AC_MAINB["AC rozvaděč domu"]
-        AC_MAINB --> GW_BATT["Baterie 12 kWh (GoodWe)"]
+        AC_MAINB --> GW_BATT["Baterie 12 kWh GoodWe"]
         GW_BATT -->|Je-li plná| TRANSFER["Chytré relé / přepínač"] --> CHG_CTRL["AC nabíječka do FLA baterie"] --> BATB
     end
 
@@ -115,6 +117,11 @@ flowchart TD
 ```
 
 > **Poznámka:** Programovatelné přepínací relé řízené SoC sledováním může přesměrovat přebytečný výkon ze sítě (GoodWe) do ostrovní baterie pomocí Victron Phoenix Charger nebo jiné vhodné AC nabíječky.
+
+> **Poznámka:** Programovatelné relé řízené Cerbo GX spíná AC nabíječku:
+pokud je GoodWe baterie plná nebo
+pokud je SoC FLA baterie pod 50 %
+Tím je zajištěna minimální dostupnost energie pro kritické zátěže i při slabém slunečním svitu.
 
 ---
 
