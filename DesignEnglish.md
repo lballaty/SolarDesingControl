@@ -56,7 +56,8 @@
 
 ---
 
-### 🖼 Detailed Wiring – Variant A
+### 🖼 Detailed Wiring – Variant A (Updated with Dual Charging)
+
 ```mermaid
 flowchart TD
     subgraph Panels_A [Off-grid PV Array 10 kWp]
@@ -66,19 +67,27 @@ flowchart TD
         MPPT_A1 --> DIS_A --> BATA["Battery 140 kWh / 48 V FLA"]
         MPPT_A2 --> DIS_A
     end
+
+    subgraph Grid_A [Grid-tied PV System – GoodWe 10 kWp]
+        GW_INV_A["GoodWe Inverter"] --> AC_MAINA["Main Distribution"]
+        AC_MAINA --> GW_BATT_A["GoodWe Battery 12 kWh"]
+        GW_BATT_A -->|If Full| RELAYA["Smart Relay"] --> AC_CHG_A["AC Charger to FLA Battery"] --> BATA
+    end
+
     BATA --> MPA["Victron MultiPlus-II 48/5000"]
-    MPA --> AC_A_OUT["Critical Loads Distribution Panel"]
-    AC_A_OUT --> L1A["Fish Filtration"]
-    AC_A_OUT --> L2A["LED Lights"]
-    AC_A_OUT --> L3A["Fridge, Router"]
-    AC_A_OUT --> HEATA["Water Heating Coil (Storage Tank)"]
-    GRID_A["GoodWe On-grid 10 kWp"] --> AC_MAINA["Main House Distribution Panel"]
+    MPA --> AC_OUT_A["Critical Loads"]
+    AC_OUT_A --> L1A["Fish Filtration"]
+    AC_OUT_A --> L2A["LED Lighting"]
+    AC_OUT_A --> L3A["Fridge, Router"]
+    AC_OUT_A --> HEATA["Heating Element (Boiler)"]
     AC_MAINA --> L4A["Sockets, Stove, Heat Pump"]
 ```
 
+> **Note:** The same programmable relay logic applies here. When the 12 kWh GoodWe battery is full, AC output is rerouted to charge the 140 kWh FLA battery via a suitable AC charger.
 ---
 
-### 🖼 Detailed Wiring – Variant B
+### 🖼 Detailed Wiring – Variant B (Updated with Dual Charging)
+
 ```mermaid
 flowchart TD
     subgraph Panels_B [Off-grid PV Array 5 kWp]
@@ -87,15 +96,22 @@ flowchart TD
         MPPT_B --> DIS_B --> BATB["Battery 70 kWh / 48 V FLA"]
     end
 
+    subgraph Panels_Grid [Grid-tied PV System (GoodWe 10 kWp)]
+        GW_INV["GoodWe Inverter"] --> AC_MAINB["Main House Distribution Panel"]
+        AC_MAINB --> GW_BATT["Battery 12 kWh (GoodWe)"]
+        GW_BATT -->|If Full| TRANSFER["Smart Relay / Transfer Switch"] --> CHG_CTRL["AC Charger to 70 kWh Battery"] --> BATB
+    end
+
     BATB --> MPB["Victron MultiPlus-II 48/3000"]
     MPB --> AC_B_OUT["Critical Loads Distribution Panel"]
     AC_B_OUT --> L1B["Fish Tank Filtration"]
     AC_B_OUT --> L2B["LED Lighting"]
     AC_B_OUT --> L3B["DC Loads"]
 
-    GRID_B["GoodWe On-grid 10 kWp"] --> AC_MAINB["Main House Distribution Panel"]
     AC_MAINB --> L4B["Sockets, Stove, Heat Pump"]
 ```
+
+> **Note:** A programmable transfer switch or contactor controlled by SoC monitoring of the 12 kWh battery can redirect surplus power from the GoodWe inverter (via AC) into the off-grid battery system through a Victron Phoenix Charger or similar AC charger.
 
 ---
 
@@ -120,6 +136,12 @@ flowchart TD
 - Mount near the inverter
 - GX Touch placed in visible location
 - Remote monitoring via Victron VRM portal
+
+#### Cerbo GX + Smart Relay
+
+* Cerbo GX handles SoC tracking and state logic
+* Smart relay (e.g. Victron Digital Input Relay or Shelly Pro) triggers AC charger once 12 kWh battery reaches full
+* AC charger recommended: Victron Phoenix Charger 24/48 V
 
 ---
 
